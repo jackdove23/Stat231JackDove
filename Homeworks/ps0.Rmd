@@ -118,15 +118,21 @@ Calculate the correlation coefficient between `x` vs. `y` for the `star` dataset
 > RESPONSE: 
 
 ```{r}
+star_data <- datasaurus_dozen %>%
+  filter(dataset == "star")
 
+# Calculate a summary statistic that we call `r` equal to the correlation coefficient between `x` and `y` for the `dino` dataset 
+star_data %>%
+  summarize(r = cor(x, y))
 ```
 
 Then, plot `y` versus `x` for the `star` dataset.  Does the plot look the same as the plot of the `dino` data?
 
-> RESPONSE:
+> RESPONSE: No; the density of the points varies, with large clusters coming at some corners of the star. 
 
 ```{r}
-
+ggplot(data=star_data, mapping=aes(x=x, y=y)) +
+  geom_point() 
 ```
 
 
