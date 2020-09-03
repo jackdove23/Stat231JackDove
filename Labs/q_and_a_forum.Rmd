@@ -1,0 +1,171 @@
+---
+title: 'STAT 231: R Q & A Discussion Forum'
+author: ' '
+date: "Sept. 3, 2020"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r, setup, include=FALSE}
+# Load packages here 
+library(mdsr)   
+library(babynames)
+library(tidyverse)
+
+knitr::opts_chunk$set(
+  tidy=FALSE,     # display code as typed
+  size="small",
+  message=FALSE)   # slightly smaller font for code
+```
+
+# Original code
+
+Below is the code, slightly modified, from the extended example on historical baby names in section 3.3.1.  You can work off the section(s) of this code relevant to your assigned question as you explore answers.
+
+```{r include=FALSE}
+# "The 'lifetables' table from the 'babynames' package contains actuarial estimates of the number of people per 100,000 who are alive at age x, for every 0 <= x <= 114.  The 'make_babynames_dist()' function in the 'mdsr' package adds some more convenient variables and filters for only the data that is relevant to people alive in 2014" -- MDSR pg. 49
+head(lifetables, 5)
+
+BabynamesDist <- make_babynames_dist()
+head(BabynamesDist, 5)
+
+joseph <- BabynamesDist %>%
+  filter(name == "Joseph" & sex == "M")
+
+name_plot <- ggplot(data = joseph, aes(x = year)) +
+  geom_bar(stat = "identity", aes(y = count_thousands*alive_prob)
+           , fill = "#b2d7e9", color = "white") + 
+  geom_line(aes(y = count_thousands), size = 2) + 
+  ylab("Number of People (thousands)") +
+  xlab(NULL) 
+  
+name_plot
+
+wtd.quantile <- Hmisc::wtd.quantile
+median_yob <- with(joseph, wtd.quantile(year, est_alive_today, probs = 0.5))
+median_yob
+
+# Figure 3.22
+name_plot2 <- name_plot + 
+  geom_bar(stat = "identity", color = "white", fill = "#008fd5"
+           , aes(y = ifelse(year == median_yob, est_alive_today/1000, 0))) +
+  ggtitle("Age Distribution of American Boys Named Joseph") +
+  geom_text(x = 1935, y = 40, label = "Number of Josephs \nborn each year") +
+  geom_text(x = 1915, y = 13
+            , label = "Number of Josephs \nborn each year \nestimated to be alive \non 1/1/2014"
+            , color = "#b2d7e9") +
+  geom_text(x = 2003, y = 40, label = "The median \nliving Joseph \nis 37 years old"
+            , color = "darkgray") + 
+  geom_curve(x = 1995, xend = 1974, y = 40, yend = 24
+             , arrow = arrow(length = unit(0.3,"cm")), curvature = 0.5) +
+  ylim(0,42)
+
+name_plot2
+
+# Figure 3.23
+name_plot %+% filter(BabynamesDist, name == "Josephine" & sex == "F")
+
+# Figure 3.24
+names_plot <- name_plot + facet_wrap(~sex) 
+names_plot %+% filter(BabynamesDist, name == "Jessie")
+
+# Figure 3.25
+many_names_plot <- name_plot + facet_grid(name ~ sex)
+many_names_plot %+% filter(BabynamesDist, name %in% c("Jessie", "Marion", "Jackie"))
+
+# Figure 3.27 (Most common women's names)
+com_fem <- BabynamesDist %>%
+  filter(sex == "F" & est_alive_today > 0) %>%
+  group_by(name) %>%
+  summarise(
+    N = n()
+    , est_num_alive = sum(est_alive_today)
+    , q1_age = wtd.quantile(age_today, est_alive_today, probs = 0.25)
+    , median_age = wtd.quantile(age_today, est_alive_today, probs = 0.5)
+    , q3_age = wtd.quantile(age_today, est_alive_today, probs = 0.75)) %>%
+  arrange(desc(est_num_alive)) %>%
+  head(25)
+
+w_plot <- ggplot(data = com_fem
+                 , aes(x = reorder(name,-median_age), y = median_age)) + 
+  xlab(NULL) +
+  ylab("Age (in years)") +
+  ggtitle("Median ages for females with the 25 most common names") +
+  geom_linerange(aes(ymin = q1_age, ymax = q3_age), color = "#f3d478"
+                 , size = 10, alpha = 0.8) +
+  geom_point(fill = "#ed3324", color = "white", size = 4, shape = 21) +
+  coord_flip()
+
+w_plot
+```
+
+
+
+### QX. [Insert the question you're answering here] 
+
+Include your answer and explanation here.  You can intersperse text with code in your explanation.
+
+How does geom_curve() work?  How was the shape and position of the arrow to median year of birth set?  What does “curvature = 0.5” do?  What is the purpose of the arrow argument?
+
+The geom_curve() function creates a curved line that can be added on to ggplots. In the case of the babies named Joseph plot, the curve points to the median age of Josephs. The position of the curve is defined by x and y ranges, which are decided by the x/xend and y/yend values. The 0.5 curvature value corresponds to a 90 degree counter-clockwise turn; a 1 value creates a semicircle, while a -0.5 curvature value moves in the clockwise direction. The arrow argument is a style addition placed at the end of the curve, which effectively points to the median value of the plot. See nameplots x, y, and z below for visualizations of three of these geom_curve() inputs. 
+
+```{r}
+#Position Adjustment: xend adjusted to 1930 to lengthen the curve. 
+name_plotx <- name_plot + 
+  geom_bar(stat = "identity", color = "white", fill = "#008fd5"
+           , aes(y = ifelse(year == median_yob, est_alive_today/1000, 0))) +
+  ggtitle("Age Distribution of American Boys Named Joseph") +
+  geom_text(x = 1935, y = 40, label = "Number of Josephs \nborn each year") +
+  geom_text(x = 1915, y = 13
+            , label = "Number of Josephs \nborn each year \nestimated to be alive \non 1/1/2014"
+            , color = "#b2d7e9") +
+  geom_text(x = 2003, y = 40, label = "The median \nliving Joseph \nis 37 years old"
+            , color = "darkgray") + 
+  geom_curve(x = 1995, xend = 1930, y = 40, yend = 24
+             , arrow = arrow(length = unit(0.3,"cm")), curvature = 0.5) +
+  ylim(0,42)
+name_plotx
+
+#Curvature Adjustment: curvature changed to 1 to change the angle of the curve. 
+name_ploty <- name_plot + 
+  geom_bar(stat = "identity", color = "white", fill = "#008fd5"
+           , aes(y = ifelse(year == median_yob, est_alive_today/1000, 0))) +
+  ggtitle("Age Distribution of American Boys Named Joseph") +
+  geom_text(x = 1935, y = 40, label = "Number of Josephs \nborn each year") +
+  geom_text(x = 1915, y = 13
+            , label = "Number of Josephs \nborn each year \nestimated to be alive \non 1/1/2014"
+            , color = "#b2d7e9") +
+  geom_text(x = 2003, y = 40, label = "The median \nliving Joseph \nis 37 years old"
+            , color = "darkgray") + 
+  geom_curve(x = 1995, xend = 1974, y = 40, yend = 24
+             , arrow = arrow(length = unit(0.3,"cm")), curvature = 1) +
+  ylim(0,42)
+name_ploty
+
+#Arrow Adjustment: arrow length changed to 1 cm.  
+name_plotz <- name_plot + 
+  geom_bar(stat = "identity", color = "white", fill = "#008fd5"
+           , aes(y = ifelse(year == median_yob, est_alive_today/1000, 0))) +
+  ggtitle("Age Distribution of American Boys Named Joseph") +
+  geom_text(x = 1935, y = 40, label = "Number of Josephs \nborn each year") +
+  geom_text(x = 1915, y = 13
+            , label = "Number of Josephs \nborn each year \nestimated to be alive \non 1/1/2014"
+            , color = "#b2d7e9") +
+  geom_text(x = 2003, y = 40, label = "The median \nliving Joseph \nis 37 years old"
+            , color = "darkgray") + 
+  geom_curve(x = 1995, xend = 1974, y = 40, yend = 24
+             , arrow = arrow(length = unit(1,"cm")), curvature = 0.5) +
+  ylim(0,42)
+name_plotz
+```
+
+Once you're satisfied with your explanation:
+
+- set the r code chunk option "include=FALSE" for the code chunk above (for the original code); we don't want to see all the original code in your answer and that option will suppress that code and output from being printed (but will still evaluate the code)
+- delete the text and section header for the "# Original Code" section
+- knit the document to pdf or html
+- go to the "R Questions and Answers" forum on Moodle, and click on the discussion topic "Problem Set 1A Questions".  Click "Reply", indicate the question you're answering, and attach your knit file with the response
+
+ 
