@@ -101,7 +101,6 @@ Note: be sure you load the `nasaweather` package and use the `storms` dataset fr
 
 ```{r}
 library(nasaweather)
-view(storms)
 
 ggplot(data=storms) +
   geom_path(mapping = aes(x=long, y=lat, color=name)) +
