@@ -4,11 +4,11 @@ author: "Your Name Here"
 date: "October 1, 2020"
 always_allow_html: yes
 output:
+  pdf_document:
+    toc: yes 
   html_document:
     toc: yes
     toc_float: yes
-  pdf_document:
-    toc: yes 
 editor_options: 
   chunk_output_type: console
 ---
