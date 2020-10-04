@@ -53,7 +53,7 @@ Further details can be found in the project guidelines document ("PUG_Shiny_Proj
 
 If you haven't already, please get in touch with your team members to coordinate your plan.  Briefly describe your group's plan (e.g., "I'll be working to get X done before Tuesday's class, and the others will be working on Y and Z." -- or -- "We're planning to meet on X day at Y time via Zoom to do Z together").
 
-> ANSWER: Sounds good.
+> ANSWER: We've divided the project into three segments: NFL results, betting odds, and predictions. John is wrangling the year by year historical NFL score data, I'm wrangling team by team betting performance data, and Michael is working to wrangle data for a logistic regression model predicting win probability. 
 
 
 
